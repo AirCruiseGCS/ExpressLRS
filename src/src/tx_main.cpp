@@ -25,6 +25,9 @@
 #if defined(TWATCH_UI)
 #include "devTWatchUI.h"
 #endif
+#if defined(TWATCH_FAILSAFE)
+#include "twatch_failsafe.h"
+#endif
 #else
 // Fake functions for 8285
 void checkBackpackUpdate() {}
@@ -515,6 +518,11 @@ void SetRFLinkRate(uint8_t index) // Set speed of RF link
 
 void ICACHE_RAM_ATTR SendRCdataToRF()
 {
+#if defined(TWATCH_FAILSAFE)
+  // twatch: the watch's FAILSAFE key - transmit nothing, the receiver fails safe as on a lost signal
+  if (twatchFailsafeSilence())
+    return;
+#endif
   // Do not send a stale channels packet to the RX if one has not been received from the handset
   // *Do* send data if a packet has never been received from handset and the timer is running
   // this is the case when bench testing and TXing without a handset
@@ -604,7 +612,11 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
       // always enable DataUl after a channel package since the slot is only used if DataUlSender has data to send
       NextPacketIsDataUl = true;
 
+#if defined(TWATCH_FAILSAFE)
+      twatchFailsafePackChannelData(&otaPkt, ChannelData, DataDlReceiver.GetCurrentConfirm()); // + arm lock on resume
+#else
       OtaPackChannelData(&otaPkt, ChannelData, DataDlReceiver.GetCurrentConfirm());
+#endif
     }
   }
 
