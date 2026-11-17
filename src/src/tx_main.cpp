@@ -28,7 +28,7 @@
 #if defined(TWATCH_FAILSAFE)
 #include "twatch_failsafe.h"
 #endif
-#if defined(TWATCH_SCANNER)
+#if defined(TWATCH_SCANNER) || defined(TWATCH_TX_SWITCH)
 #include "twatch_radio.h"
 #endif
 #else
@@ -690,8 +690,8 @@ void ICACHE_RAM_ATTR timerCallback()
   {
     handset->JustSentRFpacket();
   }
-#if defined(TWATCH_SCANNER)
-  if (twatchRadioPaused()) // twatch: the radio is lent to the watch's scanner, send nothing
+#if defined(TWATCH_SCANNER) || defined(TWATCH_TX_SWITCH)
+  if (twatchRadioPaused()) // twatch: the radio is lent to the scanner / the TX is switched off
     return;
 #endif
 
@@ -827,7 +827,7 @@ static void ConfigChangeCommit()
 
 static void CheckConfigChangePending()
 {
-#if defined(TWATCH_SCANNER)
+#if defined(TWATCH_SCANNER) || defined(TWATCH_TX_SWITCH)
   if (twatchRadioPaused()) // twatch: commit (and set the radio) after the radio is ELRS's again
     return;
 #endif
@@ -1035,7 +1035,7 @@ static void EnterBindingMode()
 {
   if (InBindingMode)
       return;
-#if defined(TWATCH_SCANNER)
+#if defined(TWATCH_SCANNER) || defined(TWATCH_TX_SWITCH)
   if (twatchRadioPaused()) // twatch: not while the radio is lent out
     return;
 #endif
@@ -1546,7 +1546,7 @@ void setup()
 void loop()
 {
   uint32_t now = millis();
-#if defined(TWATCH_SCANNER)
+#if defined(TWATCH_SCANNER) || defined(TWATCH_TX_SWITCH)
   twatchRadioService(); // twatch: lend the radio to the scanner / take it back (lib/TWATCH_RADIO)
 #endif
 
