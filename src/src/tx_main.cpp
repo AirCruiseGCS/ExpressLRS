@@ -22,6 +22,9 @@
 #include "devThermal.h"
 #include "devPDET.h"
 #include "devBackpack.h"
+#if defined(TWATCH_UI)
+#include "devTWatchUI.h"
+#endif
 #else
 // Fake functions for 8285
 void checkBackpackUpdate() {}
@@ -113,6 +116,9 @@ device_affinity_t ui_devices[] = {
   {&Gsensor_device, 0},
   {&Thermal_device, 0},
   {&PDET_device, 0},
+#endif
+#if defined(TWATCH_UI)
+  {&TWatchUI_device, 0},
 #endif
 #endif
   {&VTX_device, 0}
@@ -1572,6 +1578,9 @@ void loop()
       {
         // Send all other tlm to CRSF router
         crsfRouter.processMessage(&otaConnector, (crsf_header_t *)CRSFinBuffer);
+#if defined(TWATCH_UI)
+        twatchUiOnTelemetry(CRSFinBuffer);
+#endif
         sendCRSFTelemetryToBackpack(CRSFinBuffer);
       }
       DataDlReceiver.Unlock();
