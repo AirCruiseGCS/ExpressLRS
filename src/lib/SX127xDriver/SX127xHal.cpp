@@ -1,4 +1,4 @@
-#ifndef UNIT_TEST
+#if !defined(UNIT_TEST) && !defined(RADIO_SX1262) // an SX1262 build uses lib/SX1262Driver instead
 
 #include "SX127xHal.h"
 #include "SX127xRegs.h"
@@ -156,4 +156,4 @@ void ICACHE_RAM_ATTR SX127xHal::dioISR_2()
         instance->IsrCallback_2();
 }
 
-#endif // UNIT_TEST
+#endif // !UNIT_TEST && !RADIO_SX1262

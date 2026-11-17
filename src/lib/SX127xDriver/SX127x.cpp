@@ -1,3 +1,4 @@
+#if !defined(RADIO_SX1262) // an SX1262 build uses lib/SX1262Driver instead (see SX127xDriver.h)
 #include "SX127x.h"
 #include "logging.h"
 #include "RFAMP_hal.h"
@@ -768,3 +769,5 @@ void ICACHE_RAM_ATTR SX127xDriver::IsrCallback(SX12XX_Radio_Number_t radioNumber
 //   ClearIrqFlags();
 //   return (CHANNEL_FREE);
 // }
+
+#endif // !RADIO_SX1262
