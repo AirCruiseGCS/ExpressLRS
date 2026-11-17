@@ -3,7 +3,7 @@
 #include "SX1262_hal.h"
 #include "logging.h"
 #include <SPIEx.h>
-#include <Wire.h>
+#include "AXP2101.h"
 
 #if !defined(PLATFORM_ESP32)
 #error "The SX1262 driver is only written for ESP32 targets"
@@ -38,52 +38,11 @@ void SX1262Hal::end()
 void SX1262Hal::powerUpRadio()
 {
 #if defined(SX1262_POWER_AXP2101_ALDO4)
-    constexpr uint8_t AXP2101_ADDR = 0x34;
-    constexpr uint8_t AXP2101_REG_CHIP_ID = 0x03;          // 0x4A
-    constexpr uint8_t AXP2101_REG_LDO_ONOFF_CTRL0 = 0x90;  // bit 3 = ALDO4 enable
-    constexpr uint8_t AXP2101_REG_LDO_VOL3_CTRL = 0x95;    // bits 4..0: ALDO4 = 500 mV + n * 100 mV
-    constexpr uint8_t ALDO4_3V3 = (3300 - 500) / 100;      // 28
-
-    extern boolean i2c_enabled;
-    if (!i2c_enabled)
-    {
-        if (GPIO_PIN_SDA == UNDEF_PIN || GPIO_PIN_SCL == UNDEF_PIN)
-        {
-            ERRLN("SX1262: AXP2101 power needs i2c_sda/i2c_scl in the hardware layout");
-            return;
-        }
-        Wire.begin(GPIO_PIN_SDA, GPIO_PIN_SCL);
-        i2c_enabled = true;
-    }
-
-    auto readReg = [](uint8_t reg) -> int {
-        Wire.beginTransmission(AXP2101_ADDR);
-        Wire.write(reg);
-        if (Wire.endTransmission(false) != 0)
-            return -1;
-        if (Wire.requestFrom(AXP2101_ADDR, (uint8_t)1) != 1)
-            return -1;
-        return Wire.read();
-    };
-    auto writeReg = [](uint8_t reg, uint8_t val) -> bool {
-        Wire.beginTransmission(AXP2101_ADDR);
-        Wire.write(reg);
-        Wire.write(val);
-        return Wire.endTransmission() == 0;
-    };
-
-    const int id = readReg(AXP2101_REG_CHIP_ID);
-    DBGLN("SX1262: AXP2101 chip id 0x%x", id);
-    (void)id;
-    const int vol = readReg(AXP2101_REG_LDO_VOL3_CTRL);
-    const int onoff = readReg(AXP2101_REG_LDO_ONOFF_CTRL0);
-    if (vol < 0 || onoff < 0)
+    if (!AXP2101::begin() || !AXP2101::enableAldo(4, 3300))
     {
         ERRLN("SX1262: AXP2101 not answering, the radio may be unpowered");
         return;
     }
-    writeReg(AXP2101_REG_LDO_VOL3_CTRL, (uint8_t)((vol & 0xE0) | ALDO4_3V3));
-    writeReg(AXP2101_REG_LDO_ONOFF_CTRL0, (uint8_t)(onoff | 0x08));
     delay(50); // the probes waited 50 ms between enabling ALDO4 and resetting the radio
 #endif
 }
