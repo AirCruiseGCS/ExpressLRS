@@ -778,7 +778,11 @@ TxConfig::SetDefaults(bool commit)
     for (unsigned i=0; i<CONFIG_TX_MODEL_CNT; i++)
     {
         SetModelId(i);
-        #if defined(RADIO_SX127X)
+        #if defined(RADIO_SX1262)
+            // An SX1262 standing in for the SX127x: SF8 (50 Hz) is the rate verified against SX127x receivers;
+            // the SF6 rates (200 Hz, 100 Hz Full, D50) are not verified for SX126x <-> SX127x interoperation
+            SetRate(enumRatetoIndexSafe(RATE_LORA_900_50HZ));
+        #elif defined(RADIO_SX127X)
             SetRate(enumRatetoIndexSafe(RATE_LORA_900_200HZ));
         #elif defined(RADIO_LR1121)
             SetRate(enumRatetoIndexSafe(POWER_OUTPUT_VALUES_COUNT == 0 ? RATE_LORA_2G4_250HZ : RATE_LORA_900_200HZ));

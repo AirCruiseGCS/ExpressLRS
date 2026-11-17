@@ -1433,6 +1433,18 @@ void setup()
     eeprom.Begin(); // Init the eeprom
     config.SetStorageProvider(&eeprom); // Pass pointer to the Config class for access to storage
     config.Load(); // Load the stored values from eeprom
+#if defined(DEBUG_TX_FREERUN)
+    // Bench without a handset (devHandset.cpp forces the "connected" callback): send centred sticks with AUX1 (arm)
+    // low instead of the all-zero ChannelData, until a handset supplies real channels.
+    for (unsigned ch = 0; ch < CRSF_NUM_CHANNELS; ++ch)
+      ChannelData[ch] = CRSF_CHANNEL_VALUE_MID;
+    ChannelData[AUX1] = CRSF_CHANNEL_VALUE_1000;
+  #if defined(DEBUG_TX_FREERUN_MODEL_MATCH)
+    // No handset also means no Lua to switch Model Match on: do it here (model id 0, the TX's default)
+    config.SetModelMatch(true);
+    config.Commit();
+  #endif
+#endif
 
     Radio.currFreq = FHSSgetInitialFreq(); //set frequency first or an error will occur!!!
     #if defined(RADIO_SX127X)

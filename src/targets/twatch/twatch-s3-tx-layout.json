@@ -1,0 +1,17 @@
+{
+    "radio_sck": 3,
+    "radio_miso": 4,
+    "radio_mosi": 1,
+    "radio_nss": 5,
+    "radio_rst": 8,
+    "radio_busy": 7,
+    "radio_dio1": 9,
+    "radio_dcdc": true,
+    "i2c_sda": 10,
+    "i2c_scl": 11,
+    "power_min": 0,
+    "power_max": 3,
+    "power_default": 0,
+    "power_control": 0,
+    "power_values": [10, 14, 17, 20]
+}
