@@ -28,6 +28,9 @@
 #if defined(TWATCH_FAILSAFE)
 #include "twatch_failsafe.h"
 #endif
+#if defined(TWATCH_SCANNER)
+#include "twatch_radio.h"
+#endif
 #else
 // Fake functions for 8285
 void checkBackpackUpdate() {}
@@ -687,6 +690,10 @@ void ICACHE_RAM_ATTR timerCallback()
   {
     handset->JustSentRFpacket();
   }
+#if defined(TWATCH_SCANNER)
+  if (twatchRadioPaused()) // twatch: the radio is lent to the watch's scanner, send nothing
+    return;
+#endif
 
   // Do not transmit or advance FHSS/Nonce until in disconnected/connected state
   if (connectionState == awaitingModelId)
@@ -820,6 +827,10 @@ static void ConfigChangeCommit()
 
 static void CheckConfigChangePending()
 {
+#if defined(TWATCH_SCANNER)
+  if (twatchRadioPaused()) // twatch: commit (and set the radio) after the radio is ELRS's again
+    return;
+#endif
   if (config.IsModified() || ModelUpdatePending)
   {
     // Keep transmitting sync packets until the spam counter runs out
@@ -1024,6 +1035,10 @@ static void EnterBindingMode()
 {
   if (InBindingMode)
       return;
+#if defined(TWATCH_SCANNER)
+  if (twatchRadioPaused()) // twatch: not while the radio is lent out
+    return;
+#endif
 
   // Disable the TX timer and wait for any TX to complete
   hwTimer::stop();
@@ -1531,6 +1546,9 @@ void setup()
 void loop()
 {
   uint32_t now = millis();
+#if defined(TWATCH_SCANNER)
+  twatchRadioService(); // twatch: lend the radio to the scanner / take it back (lib/TWATCH_RADIO)
+#endif
 
   HandleUARTout(); // Only used for non-CRSF output
 
