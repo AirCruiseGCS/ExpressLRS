@@ -345,7 +345,7 @@ int tick()
     }
     if (!awake)
         return TICK_ASLEEP_MS;
-    if (now - wokeAt >= TWATCH_UI_SCREEN_TIMEOUT_MS)
+    if (TWATCH_UI_SCREEN_TIMEOUT_MS != 0 && now - wokeAt >= TWATCH_UI_SCREEN_TIMEOUT_MS)
     {
         sleepPanel();
         return TICK_ASLEEP_MS;

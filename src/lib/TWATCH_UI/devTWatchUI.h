@@ -7,7 +7,12 @@
 extern device_t TWatchUI_device;
 
 // The screen goes dark (backlight off, panel asleep, no redraws) this long after the last wake-up.
+// The screen goes dark this long after the last wake-up; 0 = always on. -DTWATCH_UI_SCREEN_TIMEOUT=<ms> overrides.
+#if defined(TWATCH_UI_SCREEN_TIMEOUT)
+constexpr uint32_t TWATCH_UI_SCREEN_TIMEOUT_MS = TWATCH_UI_SCREEN_TIMEOUT;
+#else
 constexpr uint32_t TWATCH_UI_SCREEN_TIMEOUT_MS = 30000;
+#endif
 
 /**
  * Hooks, safe to call from any task or core (they only set flags; the device task acts on them).

@@ -92,7 +92,7 @@ IPS, 40 MHz on HSPI = SPI3 (the radio's SPIEx is SPI2); pins `screen_cs` 12, `sc
 - No input yet (WE2.2). Bench: `-DTWATCH_UI_CYCLE_MS=5000` shows the next screen every 5 s while the screen is on;
   `-DTWATCH_UI_WAKE_ON_EVENTS` switches it on for bind started (02), link lost / regained (01), arm change (03).
   Hooks for the input code: `twatchUiWake()` (home screen) and `twatchUiShowScreen(s)`, lib/TWATCH_UI/devTWatchUI.h.
-- Screen timeout `TWATCH_UI_SCREEN_TIMEOUT_MS` = 30 s after the last wake-up: backlight off, ST7789 SLPIN, no
+- Screen timeout `TWATCH_UI_SCREEN_TIMEOUT_MS` (-DTWATCH_UI_SCREEN_TIMEOUT=<ms>, 0 = always on; the watch env: 0, the owner 17.11.2026; default 30 s) after the last wake-up: backlight off, ST7789 SLPIN, no
   redraws; wake-up = SLPOUT, full redraw, backlight on. The radio is untouched either way.
 - Data: uplink LQ / RSSI / SNR and downlink RSSI from linkStats; RSSI 2 only if the receiver reports one; rate from
   the current air rate, the RATE card's corner = switch mode; POWER current / max mW, DYN; TLM ratio and bps (as the
