@@ -62,3 +62,19 @@ Power levels: 10/25/50/100 mW = 10/14/17/20 dBm, default 10 mW.
   RSSI -62 dBm, SNR +11; power index 1 (25 mW). The receiver's LED solid. No drops in 40 s.
 - Diagnostics without a log port: the TX's USB carries CRSF to the (absent) handset - LINK_STATISTICS (0x14) every
   200 ms; RSSI bytes are int8.
+
+## Packet rates, 17.11.2026 (bench flag `-DDEBUG_TX_FREERUN_RATE=<rate>`; the receiver power-cycled before each)
+
+| Rate | LoRa | Result |
+|---|---|---|
+| 50 Hz | SF8 | linked: up LQ 100 %, down LQ 100 % |
+| 100 Hz | SF7 | linked: up LQ 100 %, RSSI -80 dBm; telemetry rising as at 50 Hz |
+| 200 Hz | SF6 | **no link** (60 s on a freshly started receiver) |
+
+SF6 is not interoperable: the SX1261/2 datasheet says its SF5/SF6 were changed to work with an explicit header too, and
+"SF6 will not be backward compatible with the SF6 used on SX1276". ELRS has an undocumented compatibility register for
+the LR1121 (CorrectRegisterForSF6, from Semtech by email); none is known for the SX126x. So the watch has 25 / 50 / 100 Hz
+against SX127x receivers; 200 Hz, 100 Hz Full and D50 (all SF6) do not link. To do (WE1.5): offer only those rates in an
+SX1262 build. 25 Hz (SF9) not yet tried.
+
+Also: an ELRS receiver left without a link for ~60 s starts its WiFi and stops listening - power-cycle it between tries.

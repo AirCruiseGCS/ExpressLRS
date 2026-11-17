@@ -1444,6 +1444,11 @@ void setup()
     config.SetModelMatch(true);
     config.Commit();
   #endif
+  #if defined(DEBUG_TX_FREERUN_RATE)
+    // ...nor to pick the packet rate: -DDEBUG_TX_FREERUN_RATE=<expresslrs_RFrates_e>, e.g. RATE_LORA_900_200HZ
+    config.SetRate(enumRatetoIndexSafe(DEBUG_TX_FREERUN_RATE));
+    config.Commit();
+  #endif
 #endif
 
     Radio.currFreq = FHSSgetInitialFreq(); //set frequency first or an error will occur!!!
