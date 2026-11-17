@@ -50,3 +50,15 @@ The fork adds, under the same flag, centred ChannelData with AUX1 (arm) low inst
 model id 0 (the reference TX has Model Match on), and without a handset there is no Lua to switch it on.
 The default rate of a fresh config is 50 Hz (SF8) in an SX1262 build (config.cpp) - the rate verified on the bench.
 Power levels: 10/25/50/100 mW = 10/14/17/20 dBm, default 10 mW.
+
+## On the bench, 17.11.2026
+
+- First boot panicked in `AutoDetect::Begin()` (RMT on an undefined CRSF pin): with no `serial_rx`/`serial_tx` in the
+  layout both are UNDEF, `devHandset` takes the "RX == TX" half-duplex auto-detect path and configures RMT on pin -1.
+  Fixed in the layout: `serial_rx` 41, `serial_tx` 42 - the watch's GPS-shield pins, unused on a plain T-Watch S3 - so
+  the plain `CRSFHandset` (UART) is used and `DEBUG_TX_FREERUN` starts the link.
+- Then **linked to the receiver** (the one bound to the BetaFPV Micro TX V2, 50 Hz, Model Match model 0): CRSF
+  LINK_STATISTICS over USB - uplink LQ 100 %, RSSI -86 dBm, SNR +7; downlink (telemetry) LQ 100 % after ~18 s,
+  RSSI -62 dBm, SNR +11; power index 1 (25 mW). The receiver's LED solid. No drops in 40 s.
+- Diagnostics without a log port: the TX's USB carries CRSF to the (absent) handset - LINK_STATISTICS (0x14) every
+  200 ms; RSSI bytes are int8.
