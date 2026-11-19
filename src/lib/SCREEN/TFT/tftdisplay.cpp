@@ -14,6 +14,13 @@
 #include "options.h"
 
 #include "WiFi.h"
+
+// twatch (WE7): GFX Library 1.6.8 (core 3.x) keeps only the RGB565_* colour names
+#ifndef WHITE
+#define WHITE RGB565_WHITE
+#define BLACK RGB565_BLACK
+#define DARKGREY RGB565_DARKGREY
+#endif
 extern WiFiMode_t wifiMode;
 
 const uint16_t *main_menu_icons[] = {

@@ -59,6 +59,15 @@ static struct
 } ledc_config[LEDC_CHANNELS];
 static uint32_t ledcTimerConfigs[LEDC_TIMER_MAX] = {0};
 
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+// twatch (WE7): core 3.x dropped the channel-based ledcWrite / ledcDetachPin this file pairs with its own
+// ledc_*_config calls; the same with the ESP-IDF driver and the GPIO matrix (what 2.0.17 did inside them)
+#include <soc/gpio_sig_map.h>
+#define ledcDetachPin(pin) gpio_matrix_out(pin, SIG_GPIO_OUT_IDX, false, false)
+#define ledcWrite(ch, duty) \
+    do { ledc_set_duty(SPEED_MODE, (ledc_channel_t)(ch), duty); ledc_update_duty(SPEED_MODE, (ledc_channel_t)(ch)); } while (0)
+#endif
+
 /*
  * Modified versions of the ledcSetup/ledcAttachPin from Arduino ESP32 Hal which allows
  * control of the timer to use rather than being directly associated with the channel. This

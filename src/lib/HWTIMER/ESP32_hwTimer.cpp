@@ -22,6 +22,14 @@ static portMUX_TYPE isrMutex = portMUX_INITIALIZER_UNLOCKED;
 #define HWTIMER_TICKS_PER_US 1
 #endif
 
+// twatch (WE7): Arduino-ESP32 3.x replaced the timer API (gptimer underneath): timerBegin(frequency), no edge flag,
+// timerAlarm(value, autoreload, count) both sets and enables the alarm, timerStop / timerStart instead of
+// timerAlarmDisable / timerAlarmEnable. Same period semantics: the counter reloads to 0 at each alarm.
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+#define HWTIMER_CORE3 1
+static inline void timerAlarmWrite(hw_timer_t *t, uint64_t value, bool autoreload) { timerAlarm(t, value, autoreload, 0); }
+#endif
+
 void ICACHE_RAM_ATTR hwTimer::init(void (*callbackTick)(), void (*callbackTock)())
 {
 
@@ -29,8 +37,14 @@ void ICACHE_RAM_ATTR hwTimer::init(void (*callbackTick)(), void (*callbackTock)(
     {
         hwTimer::callbackTick = callbackTick;
         hwTimer::callbackTock = callbackTock;
+#if defined(HWTIMER_CORE3)
+        timer = timerBegin(1000000 * HWTIMER_TICKS_PER_US);
+        timerStop(timer); // timerBegin() starts it; resume() starts it with the alarm set
+        timerAttachInterrupt(timer, hwTimer::callback);
+#else
         timer = timerBegin(0, (APB_CLK_FREQ / 1000000 / HWTIMER_TICKS_PER_US), true);
         timerAttachInterrupt(timer, hwTimer::callback, true);
+#endif
         DBGLN("hwTimer Init");
     }
 }
@@ -40,7 +54,11 @@ void ICACHE_RAM_ATTR hwTimer::stop()
     if (timer && running)
     {
         running = false;
+#if defined(HWTIMER_CORE3)
+        timerStop(timer);
+#else
         timerAlarmDisable(timer);
+#endif
         DBGLN("hwTimer stop");
     }
 }
@@ -64,7 +82,11 @@ void ICACHE_RAM_ATTR hwTimer::resume()
         timerAlarmWrite(timer, 0 * HWTIMER_TICKS_PER_US, true);
 #endif
         running = true;
+#if defined(HWTIMER_CORE3)
+        timerStart(timer);
+#else
         timerAlarmEnable(timer);
+#endif
         DBGLN("hwTimer resume");
     }
 }

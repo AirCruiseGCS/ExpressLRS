@@ -19,6 +19,10 @@ bool is_smart_fan_working = false;
 #include "POWERMGNT.h"
 
 constexpr uint8_t fanChannel = 0;
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+// twatch (WE7): core 3.x's ledcWrite() takes a pin; the channel's own write is ledcWriteChannel()
+#define ledcWrite(channel, duty) ledcWriteChannel(channel, duty)
+#endif
 
 #define FAN_MIN_CHANGETIME 10U  // intervals (seconds)
 
@@ -205,8 +209,12 @@ static int start()
 {
     if (GPIO_PIN_FAN_PWM != UNDEF_PIN)
     {
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+        ledcAttachChannel(GPIO_PIN_FAN_PWM, 25000, 8, fanChannel);
+#else
         ledcSetup(fanChannel, 25000, 8);
         ledcAttachPin(GPIO_PIN_FAN_PWM, fanChannel);
+#endif
         ledcWrite(fanChannel, 0);
     }
 #if !defined(PLATFORM_ESP32_C3)

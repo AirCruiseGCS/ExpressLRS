@@ -29,10 +29,18 @@ void BindphraseConfigurable::SetBindPhrase(uint8_t *phrase, size_t phraseLen)
 #elif defined(PLATFORM_ESP32)
         mbedtls_md5_context md5;
         mbedtls_md5_init(&md5);
+#if ESP_ARDUINO_VERSION_MAJOR >= 3 // twatch: mbedtls 3 (ESP-IDF 5) has no *_ret; starts() sets the MD5 state
+        mbedtls_md5_starts(&md5);
+        mbedtls_md5_update(&md5, BIND_KEY, sizeof(BIND_KEY)-1);
+        mbedtls_md5_update(&md5, phrase, phraseLen);
+        mbedtls_md5_update(&md5, &BIND_KEY[sizeof(BIND_KEY)-2], 1);
+        mbedtls_md5_finish(&md5, UID_md5);
+#else
         mbedtls_md5_update_ret(&md5, BIND_KEY, sizeof(BIND_KEY)-1);
         mbedtls_md5_update_ret(&md5, phrase, phraseLen);
         mbedtls_md5_update_ret(&md5, &BIND_KEY[sizeof(BIND_KEY)-2], 1);
         mbedtls_md5_finish_ret(&md5, UID_md5);
+#endif
         mbedtls_md5_free(&md5);
 #endif
     }

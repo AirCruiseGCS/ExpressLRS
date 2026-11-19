@@ -19,6 +19,9 @@
 
 #if defined(PLATFORM_ESP32)
 #include <soc/soc_caps.h>
+#if defined(PLATFORM_ESP32)
+#include <esp_task_wdt.h>
+#endif
 #define MULTICORE (SOC_CPU_CORES_NUM > 1)
 #endif
 
@@ -64,7 +67,18 @@ void devicesRegister(device_affinity_t *devices, uint8_t count)
         // ..
         semCore0Begin = xSemaphoreCreateBinary();
         semCore0Complete = xSemaphoreCreateBinary();
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+        // twatch (WE7): on ESP-IDF 5, disableCore0WDT() removes core 0's idle task but leaves its idle hook, which
+        // then logs "esp_task_wdt_reset: task not found" every few ms; the watchdog reconfigured without core 0's
+        // idle task removes both (the other settings as the core's sdkconfig has them)
+        esp_task_wdt_config_t twdt = {};
+        twdt.timeout_ms = CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000;
+        twdt.idle_core_mask = 0;
+        twdt.trigger_panic = CONFIG_ESP_TASK_WDT_PANIC;
+        esp_task_wdt_reconfigure(&twdt);
+#else
         disableCore0WDT();
+#endif
         xTaskCreatePinnedToCore(deviceTask, "deviceTask", 32768, NULL, 0, &xDeviceTask, 0);
     #endif
 }
